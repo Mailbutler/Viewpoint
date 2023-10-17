@@ -35,11 +35,14 @@ module Viewpoint::EWS
         self.item_attachments ||= []
         self.inline_attachments ||= []
         self.extended_properties ||= []
+        self.message_disposition = nil
+        self.mime_content = nil
+        self.mime_content_charset = 'UTF-8'
       end
 
       def to_ews_basic
         ews_opts = {}
-        ews_opts[:message_disposition] = (draft ? 'SaveOnly' : 'SendAndSaveCopy')
+        ews_opts[:message_disposition] = message_disposition.presence || (draft ? 'SaveOnly' : 'SendAndSaveCopy')
 
         if saved_item_folder_id
           if saved_item_folder_id.kind_of?(Hash)
@@ -50,6 +53,9 @@ module Viewpoint::EWS
         end
 
         msg = {}
+
+        msg[:mime_content] = { text: mime_content, character_set: mime_content_charset } if mime_content.present?
+
         msg[:subject] = subject if subject
         msg[:body] = {text: body, body_type: body_type} if body
 
